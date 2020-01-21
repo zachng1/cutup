@@ -1,48 +1,41 @@
 import docx
-from pathlib import Path
 import random
-    
-def doc_select():       #navigates to and returns a file path
-    path = Path().home()
-    print('choose a .docx file. simply press enter to go up a level')
-    input()
-    while True:
-        ls = []
-        print('****', path.name, '****')
-        for i in path.iterdir():
-            print(i.name)
-            ls.append(i.name.lower())   #prints all objects in directory
-        while True: #checks if your input is in the directory or if you wish to go up a level
-            x = input().lower()
-            if x in ls:
-                path = str(path) + '\\' + x
-                path = Path(path)
-                break
-            elif x == '':
-                path = str(path)
-                path = path[:path.rfind('\\')]
-                path = Path(path)
-                break
-            else: print('object not found')
-        y = path.is_dir()
-        if y == False:
-            if str(path).endswith('.docx'): break
-            else:
-                print('needs to be .docx file')
-                path = str(path)
-                path = path[:path.rfind('\\')]
-                path = Path(path)
-    return path
+import sys
+import getopt
 
-def fileassignment():       #creates a list of paths of each file you want to mash up
-    fpaths = []
-    while True:
-        fpaths.append(doc_select())
-        if len(fpaths) > 1:
-            x = input('{} files selected. press enter to add another, or any other input to continue'.format(len(fpaths)))
-            if x == '': continue
-            else: return fpaths                    
-
+#return 1: option value pair for deciding whether to use cutup or foldin, and 2: a list of files to mix, with the last one being output.
+def getargs(arglist):
+    args = getopt.getopt(arglist, "c:f:h")
+    options = args[0]
+    if len(options) != 1:
+        print("Can only specify -c OR -f OR -h, not any or none", file=sys.stderr)
+        return 0
+    options = options[0]
+    if options[0] == 'h':
+        print(
+        """Usage: 
+        -c num implements the 'cutup' method, whereby Burroughs would randomly cut pages and shuffle them about. num here signifies the max length possible for a cut. 
+        -f num implements the 'foldin' method, whereby Burroughs would fold two pages in half and layer them down the middle. num here signifies how many words to read from one text before 'folding in' the next.
+        In both cases, specify at least 3 .docx files: 2 to mix together, and the 3rd as output. The output file need not already exist.
+        You can mix as many files as you like, however the output will be as long as the shortest"""
+        )
+        return 0
+    try:
+        int(options[1])
+    except:
+        print("Length option must be integer", file=sys.stderr)
+        return 0
+    files = args[1]
+    if len(files) < 3:
+        print("Requires at least 3 non-option arguments: 2 files to mix together, a 3rd as output.", file=sys.stderr)          
+        return 0
+    for i in files:
+        print(i)
+    for i in files:
+        if not i.endswith(".docx", -5):
+            print("All non-option arguments must be .docx files", sys.stderr)
+            return 0
+    return (options, files)
 
 def scanfile(path):     #converts a path ending in a .docx into a string of its content
     file = docx.Document(path)
@@ -50,12 +43,6 @@ def scanfile(path):     #converts a path ending in a .docx into a string of its 
     for paragraph in file.paragraphs:
         content.append(paragraph.text)
     return(''.join(content))
-
-def pathtotext(fpaths):     #converts a list of paths to a list of strings
-    text = []
-    for i in fpaths:
-        text.append(scanfile(i))
-    return text
 
 def stringsplit(stringlist):    #convert a list of strings to a list of lists of words
     splitstrings = []
@@ -66,125 +53,68 @@ def stringsplit(stringlist):    #convert a list of strings to a list of lists of
         for j in instindx:
             i.insert(j, '\n')
     return splitstrings
-        
+ 
+#produces a string of randomly sized chunks (up to size length) alternating between the two texts
+def cutup(filelist, length):
+    #necessary, because chunks will be a list of sentences: need a separate list to keep track of word count over sentence count
+    #this is itself necessary, because when we call shuffle on chunks we want to shuffle sentences not words
+    chunks = []
+    wcount = []
+    size = len(min(filelist, key=len))
+    a = 1; b = 1
+    #stop once size of shortest document reached
+    while len(wcount) < size:
+        c = random.randrange(1, length)
+        b += c
+        for i in filelist:
+            chunk = i[a:b]
+            wcount.extend(chunk)
+            chunks.append(' '.join(chunk))
+        a = b
+    random.shuffle(chunks)
+    return ' '.join(chunks)
 
+def foldin(filelist, length): #alternates chunk by chunk through both, maintaining the order. Will produce the same result every time given the same parameters
+    chunks = []
+    size = len(min(filelist, key=len))
+    a = 1; b = a + length
+    while len(chunks) < size:
+        for i in filelist:
+            chunk = i[a:b]
+            chunks.extend(chunk)
+            a = b
+            b += length
+    return ' '.join(chunks)
 
-def cutup(filelist, length=None, rdm=False, lim=False): #takes a list of strings and mashes up into one
-
-    def randomise(filelist, length, lim):
-        if length == None:  # this tends to basically split the two in half.. doesnt work too well!
-            chunks = []
-            wcount = []
-            size = len(min(filelist, key=len))
-            while len(wcount) < size:
-                for i in filelist:
-                    a = 2; b = 1
-                    while a > b:
-                        a = random.randrange(1, len(i)); b = random.randrange(1, len(i)) 
-                    chunk = i[a:b]
-                    del i[a:b]
-                    wcount.extend(chunk)
-                    chunks.append(' '.join(chunk))           
-            return ' '.join(chunks)      
-        elif length:
-            if lim:     #produces a string of randomly sized chunks (up to length) alternating between the two texts
-                chunks = []
-                wcount = []
-                size = len(min(filelist, key=len))
-                a = 1; b = 1
-                while len(wcount) < size:
-                    c = random.randrange(1, length)
-                    b += c
-                    for i in filelist:
-                        chunk = i[a:b]
-                        wcount.extend(chunk)
-                        chunks.append(' '.join(chunk))
-                    a = b
-                random.shuffle(chunks)
-                return ' '.join(chunks)
-            else:       #produces a string of chunks (of random but same size, determined by length param) alternating between the two texts
-                chunks = []
-                wcount = []
-                size = len(min(filelist, key=len))
-                a = 1; c = random.randrange(1, length); b = a + c
-                while len(wcount) < size:
-                    for i in filelist:
-                        chunk = i[a:b]
-                        wcount.extend(chunk)
-                        chunks.append(' '.join(chunk))
-                    a = b
-                    b += c
-                random.shuffle(chunks)
-                return ' '.join(chunks)
-
-    def foldin(filelist, length): #alternates chunk by chunk through both, maintaining the order
-        chunks = []
-        size = len(min(filelist, key=len))
-        a = 1; b = a + length
-        while len(chunks) < size:
-            for i in filelist:
-                chunk = i[a:b]
-                chunks.extend(chunk)
-                a = b
-                b += length
-        return ' '.join(chunks)
-
-
-        
-    if rdm:
-        content = randomise(filelist, length, lim)
+def choose(filelist, savedir, length=None, cut=False):
+    if cut:
+        content = cutup(filelist, length)
         final = docx.Document()
         final.add_paragraph(content)
-        final.save(Path(str(Path().home()) + '\\output.docx'))  #need to add code for choosing save dir
-
-    elif not rdm:
+        final.save(savedir)
+    else:
         content = foldin(filelist, length)
         final = docx.Document()
         final.add_paragraph(content)
-        final.save(Path(str(Path().home()) + '\\output.docx'))
-
-    #cutup needs to return something, string of file path?
+        final.save(savedir)
     
 def main():
-    paths = fileassignment()
-    content = pathtotext(paths)
-    content = stringsplit(content)
-    while True:
-        mode = input('''at what point do you want the lines to be cut?
-for example, there are normally 20 words per line on a standard a4 page,
-so enter "10" if you want the lines cut in half,
-or "20" if you want to roughly alternate line by line.
-otherwise, type "random", for a "cut-up" as opposed to "fold-in" method.
-if using "random" mode, optional arguments are -lim and an integer.
--lim means the following integer is the limit for random selection of word length
-other wise each chunk will be the length of said integer\n''')
-        if mode[:6] == 'random':
-            l = False
-            r = True
-            length = None
-            if mode[7:11] == '-lim':
-                l = True
-                try:
-                    length = int(mode[12:])
-                    break
-                except:
-                    print('must be in format random -lim integer. -lim is optional')
-            elif len(mode) > 6:
-                 try:
-                     length = int(mode[7:])
-                     break
-                 except:
-                    print('must be in format random -lim integer. -lim is optional')
-            else: break
-        else:
-            l = False
-            r = False
-            try:
-                length = int(mode)
-                break
-            except:
-                print('for fold-in mode argument must be integer')
-    cutup(content, length, rdm=r, lim=l)
+    paths = getargs(sys.argv[1:])
+    if not paths:
+        return
+    elif paths[0][0] == '-c':
+        x = True
+    else:
+        x = False
+    documents = []
+    for i in paths[1][:-1]:
+        documents.append(scanfile(i))
+    documents = stringsplit(documents)
+    choose(documents, paths[1][-1], length=int(paths[0][1]), cut=x)
+    print("Done, output saved at %s" % paths[1][-1])
+
+    
+
 
 if __name__ == '__main__':
     main()
