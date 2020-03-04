@@ -25,9 +25,13 @@ def cutup(segmentlist, length):
     segments = []
     resultlength = 0
     result = AudioSegment.empty()
-    size = len(min(segmentlist, key=len))
+
+    #use size max and sizemin in this loop to ensure an even distribution of segments
+    #also used so final output is only as long as the shortest
+    sizemax = len(max(segmentlist, key=len))
+    sizemin = len(min(segmentlist, key=len))
     a = 0; b = 0
-    while resultlength < size:
+    while b < sizemax:
         c = random.randrange(1, length)
         b += c
         for i in segmentlist:
@@ -38,6 +42,11 @@ def cutup(segmentlist, length):
     random.shuffle(segments)
     for i in segments:
         result += i
+
+        #this saves time -- otherwise result too long
+        resultlength += len(i)
+        if resultlength > sizemin:
+            break
     return result
 
 def selectmode(segmentlist, savedir, length, cut):

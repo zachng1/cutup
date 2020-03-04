@@ -29,20 +29,22 @@ def stringsplit(stringlist):
 #produces a string of randomly sized chunks (up to size length) alternating between the two texts
 def cutup(wordlist, length):
     chunks = []
-    wcount = 0
-    size = len(min(wordlist, key=len))
+    sizemax = len(max(wordlist, key=len))
+    sizemin = len(min(wordlist, key=len))
     a = 0; b = 0
-    #stop once size of shortest document reached
-    while wcount < size:
+
+    #use size max and sizemin in this loop to ensure an even distribution of segments
+    #also used so final output is only as long as the shortest
+    while b < sizemax:
         c = random.randrange(1, length)
         b += c
         for i in wordlist:
             chunk = i[a:b]
-            wcount += len(chunk)
             chunks.append(' '.join(chunk))
         a = b
     random.shuffle(chunks)
-    return ' '.join(chunks)
+    chunks = ' '.join(chunks)
+    return chunks[:sizemin]
 
 def foldin(wordlist, length): #alternates chunk by chunk through both, maintaining the order. Will produce the same result every time given the same parameters
     chunks = []
