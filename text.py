@@ -2,7 +2,7 @@ import docx
 import random
 import sys
 import getopt
-
+from pydub import AudioSegment
 #return 1: option value pair for deciding whether to use cutup or foldin, and 2: a list of files to mix, with the last one being output.
 def getargs(arglist):
     args = getopt.getopt(arglist, "c:f:h")
@@ -98,26 +98,7 @@ def choose(filelist, savedir, length=None, cut=False):
         final.add_paragraph(content)
         final.save(savedir)
     
-def main():
-    paths = getargs(sys.argv[1:])
-    if not paths:
-        return
-    elif paths[0][0] == '-c':
-        x = True
-    else:
-        x = False
-    documents = []
-    for i in paths[1][:-1]:
-        documents.append(scanfile(i))
-    documents = stringsplit(documents)
-    choose(documents, paths[1][-1], length=int(paths[0][1]), cut=x)
-    print("Done, output saved at %s" % paths[1][-1])
 
-    
-
-
-if __name__ == '__main__':
-    main()
 
 
 #needs: dialog to choose save location and title
