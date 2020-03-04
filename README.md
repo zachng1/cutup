@@ -38,6 +38,6 @@ When mixing audio, you *should* be able to use any format supported by pydub/ffm
 `Done. Output saved at path/to/output.docx`
 
 ### Music example
-`$python3 control.py -f5 path/to/track1.mp3 path/to/track2.wav path/to/track3.flv path/to/output.mp3`
+`$python3 control.py -m -f5 path/to/track1.mp3 path/to/track2.wav path/to/track3.flv path/to/output.mp3`
 
 `Done. Output saved at path/to/output.mp3`
