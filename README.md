@@ -13,8 +13,10 @@ docx for Python: https://python-docx.readthedocs.io/en/latest/user/install.html
 pydub for Python: https://github.com/jiaaro/pydub#installation
 
 ffmpeg (for pydub and non-wav audio files): https://www.ffmpeg.org/download.html
+
+moviepy for Python: https://zulko.github.io/moviepy/install.html
 ## Usage
-`control.py [-mh][-f num] [-c num] file1.docx file2.docx ... fileN.docx output.docx`
+`control.py [-mvh][-f num] [-c num] file1.ext file2.ext ... fileN.ext output.ext`
 
 Where either `-f` or `-c` must be used. 
 
@@ -25,6 +27,8 @@ Where either `-f` or `-c` must be used.
 `-h`: prints help.
 
 `-m`: optional flag, specifies that you are mixing audio files.
+
+`-v`: optional flag, specifies that you are mixing video files.
 
 In all cases, specify at least 3 files: 2 to mix together, and the 3rd as output. The output file need not already exist. You can mix as many files as you like, however the wordcount of the output will be as long as that of the shortest.
 
@@ -41,3 +45,13 @@ When mixing audio, you *should* be able to use any format supported by pydub/ffm
 `$python3 control.py -m -f5 path/to/track1.mp3 path/to/track2.wav path/to/track3.flv path/to/output.mp3`
 
 `Done. Output saved at path/to/output.mp3`
+
+### Video example
+`$python3 control.py -v -c2 'path/to/video1.mp4' 'path/to/video2.mp4' 'output.mp4`
+
+`Moviepy - Building video output.mp4.
+MoviePy - Writing audio in outputTEMP_MPY_wvf_snd.mp3
+MoviePy - Done.
+Moviepy - Writing video output.mp4
+Moviepy - Done !
+Moviepy - video ready output.mp4`
