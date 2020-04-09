@@ -1,5 +1,7 @@
 import text
 import audio
+import video
+
 import sys
 import getopt
 
@@ -9,8 +11,14 @@ def main():
     if not options:
         usage()
         return 
-    m_flag, f_flag, c_flag = False, False, False
+    if len(files) < 3:
+        print("Requires at least 3 non-option arguments: 2 files to mix together, a 3rd as output.", file=sys.stderr)          
+        return (0, 0)
+    m_flag, v_flag, f_flag, c_flag = False, False, False, False
     for ind, i in enumerate(options):
+        if i[0] == 'h':
+            usage()
+            return
         if i[0] == '-c':
             c_flag = True
             modeindex = ind
@@ -19,11 +27,12 @@ def main():
             modeindex = ind
         if i[0] == '-m':
             m_flag = True
+        if i[0] == '-v':
+            v_flag = True
     #make sure we have exactly 1 of '-c' or '-f'
     if (c_flag and f_flag) or (not (c_flag or f_flag)):
-        print("Specify exactly one of '-c' or '-f'", file=sys.stderr)
-
-    if not m_flag:
+        print("Specify exactly one of '-c' or '-f'", file=sys.stderr)  
+    elif not (m_flag or v_flag):
         content = []
         #content gets all files except last -- since last is save file
         for i in files[:-1]:
@@ -31,35 +40,35 @@ def main():
         content = text.stringsplit(content)
         text.selectmode(content, files[-1], int(options[modeindex][1]), c_flag)
         print("Done, output saved at %s" % files[-1])
-    
-    else:
+        
+    elif m_flag and v_flag:
+        print("Specify exactly one or zero of '-m' or '-v'", file=sys.stderr)
+        
+    elif m_flag:
         segments = audio.createsegments(files[:-1])
         #assume length is specified in seconds -- modify to microseconds for pydub
         length = int(options[modeindex][1]) * 1000
         audio.selectmode(segments, files[-1], length, c_flag)
         print("Done, output saved at %s" % files[-1])
 
-
+    elif v_flag:
+        segments = video.createsegments(files[:-1])
+        length = int(options[modeindex][1])
+        video.selectmode(segments, files[-1], length, c_flag)
+        for i in segments:
+            i.close()
 
 def getargs(arglist):
     """
     Returns a tuple of options and files to operate on. 
     """
-    args = getopt.getopt(arglist, "c:f:hm")
+    args = getopt.getopt(arglist, "c:f:hmv")
     #here options is set to a list of option value pairs [(o, v), (o, v)...]
     options = args[0]
     #alphabetise based on option name
     options.sort(key=lambda x: x[0])
-    #check for help option
-    for i in options:
-        if '-h' in i:
-            usage()
-            return (0, 0)
     #second element of args is all non-option arguments: in this case files.
     files = args[1]
-    if len(files) < 3:
-        print("Requires at least 3 non-option arguments: 2 files to mix together, a 3rd as output.", file=sys.stderr)          
-        return (0, 0)
     return (options, files)
 
 def usage():

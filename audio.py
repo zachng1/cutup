@@ -36,8 +36,7 @@ def cutup(segmentlist, length):
         b += c
         for i in segmentlist:
             segments.append(i[a:b])
-            resultlength += len(i[a:b])
-            
+            resultlength += c
         a = b
     random.shuffle(segments)
     for i in segments:
