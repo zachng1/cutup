@@ -10,7 +10,7 @@ def scanfile(path):
     content = []
     for paragraph in file.paragraphs:
         content.append(paragraph.text)
-        content.append('\n')
+        content.append(' ')
     return(''.join(content))
 
 def stringsplit(stringlist):
@@ -21,10 +21,6 @@ def stringsplit(stringlist):
     splitstrings = []
     for i in stringlist:
         splitstrings.append(i.split())
-    # for i in splitstrings:
-    #     instindx = range(1, len(i), 200)
-    #     for j in instindx:
-    #         i.insert(j, '\n')
     return splitstrings
  
 #produces a string of randomly sized chunks (up to size length) alternating between the two texts
@@ -44,13 +40,14 @@ def cutup(wordlist, length):
             chunks.append(chunk)
         a = b
     random.shuffle(chunks)
-    chunks = chunks[:sizemin]
-    returnString = ""
+
+    newList = []
     for i in chunks:
         if not i:
             continue
-        returnString = returnString + ' '.join(i) + ' '
-    return returnString
+        newList.extend(i)
+    newList = newList[:sizemin]
+    return ' '.join(newList)
 
 def foldin(wordlist, length): #alternates chunk by chunk through both, maintaining the order. Will produce the same result every time given the same parameters
     chunks = []
