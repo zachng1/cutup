@@ -10,18 +10,28 @@ def scanfile(path):
     content = []
     for paragraph in file.paragraphs:
         content.append(paragraph.text)
-        content.append(' ')
+        content.append('\n')
     return(''.join(content))
 
 def stringsplit(stringlist):
     """
     Takes a list of space separated strings i.e. ["word1", "word2 word3 word4", "word5 word6"] 
-    and converts into a list of strings i.e. ["word1", "word2", "word3"..."wordn"]
+    and converts into a list of lists strings i.e. [ ["word1"], ["word2", "word3", "word4"], ["word5", "word6"] ]
     """
     splitstrings = []
     for i in stringlist:
-        splitstrings.append(i.split())
-    return splitstrings
+        splitstrings.append(i.splitlines(keepends=True))
+    realsplitstrings = []
+    
+    # need to iterate twice in order to keep new lines. 
+    # sorry it's so ugly future me
+    for linesList in splitstrings:
+        newList = []
+        for line in linesList:
+            newList.extend(line.split(" "))
+        realsplitstrings.append(newList)
+    
+    return realsplitstrings
  
 #produces a string of randomly sized chunks (up to size length) alternating between the two texts
 def cutup(wordlist, length):
